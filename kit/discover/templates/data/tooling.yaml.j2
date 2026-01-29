@@ -1,0 +1,123 @@
+# tooling.yaml.j2 - CI/CD, security tools, dev tools, collaboration
+# REFS: operations.yaml, integrations.yaml, controls.yaml
+
+# SOURCE_CONTROL
+source_control:
+  platform: "{{ source_control.platform }}"
+  organization: "{{ source_control.organization }}"
+  repository: "{{ source_control.repository }}"
+  default_branch: "{{ source_control.default_branch }}"
+  branch_strategy: "{{ source_control.branch_strategy }}"
+  protected_branches: [{% for b in source_control.protected_branches %}"{{ b }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  require_reviews: {{ source_control.require_reviews }}
+  require_ci_pass: {{ source_control.require_ci_pass }}
+  mfa_required: {{ source_control.mfa_required }}
+
+# CI_CD
+ci_cd:
+  platform: "{{ ci_cd.platform }}"
+  config_files: [{% for f in ci_cd.config_files %}"{{ f }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  runners_type: "{{ ci_cd.runners_type }}"
+  pipelines:
+{% for pipeline in ci_cd.pipelines %}
+    - id: "{{ pipeline.id }}"
+      name: "{{ pipeline.name }}"
+      trigger: "{{ pipeline.trigger }}"
+      environment: "{{ pipeline.environment }}"
+      stages: [{% for s in pipeline.stages %}"{{ s }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+      sast_required: {{ pipeline.sast_required }}
+      tests_required: {{ pipeline.tests_required }}
+      approval_required: {{ pipeline.approval_required }}
+{% endfor %}
+
+# ARTIFACTS
+artifacts:
+  package_registries:
+{% for reg in artifacts.package_registries %}
+    - type: "{{ reg.type }}"
+      registry: "{{ reg.registry }}"
+      vulnerability_scanning: {{ reg.vulnerability_scanning }}
+{% endfor %}
+  container_registry: "{{ artifacts.container_registry.provider }}"
+  container_scanning: {{ artifacts.container_registry.scanning_enabled }}
+
+# SECURITY_TOOLS
+security_tools:
+{% for tool in security_tools %}
+  - category: "{{ tool.category }}"
+    tool: "{{ tool.tool }}"
+    integration: "{{ tool.integration }}"
+    blocking: {{ tool.enforcement.blocking }}
+    stage: "{{ tool.enforcement.stage }}"
+    coverage: "{{ tool.coverage }}"
+{% endfor %}
+
+# OBSERVABILITY
+observability:
+  apm_provider: "{{ observability.apm.provider }}"
+  logging_provider: "{{ observability.logging.provider }}"
+  logging_retention: "{{ observability.logging.retention }}"
+  alerting_provider: "{{ observability.alerting.provider }}"
+  error_tracking: "{{ observability.error_tracking.provider }}"
+
+# INFRASTRUCTURE
+infrastructure:
+  iac_tools:
+{% for tool in infrastructure.iac_tools %}
+    - tool: "{{ tool.tool }}"
+      state_backend: "{{ tool.state_backend }}"
+{% endfor %}
+  container_platform: "{{ infrastructure.container_orchestration.platform }}"
+  cloud_providers:
+{% for provider in infrastructure.cloud_providers %}
+    - provider: "{{ provider.provider }}"
+      mfa_required: {{ provider.mfa_required }}
+{% endfor %}
+
+# DEVELOPMENT
+development:
+  code_quality:
+{% for tool in development.code_quality %}
+    - tool: "{{ tool.tool }}"
+      type: "{{ tool.type }}"
+      enforced_in_ci: {{ tool.enforced_in_ci }}
+{% endfor %}
+  pre_commit_enabled: {{ development.pre_commit.enabled }}
+  pre_commit_hooks: [{% for h in development.pre_commit.hooks %}"{{ h }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+
+# COLLABORATION
+collaboration:
+  documentation:
+{% for doc in collaboration.documentation %}
+    - platform: "{{ doc.platform }}"
+      purpose: "{{ doc.purpose }}"
+{% endfor %}
+  communication:
+{% for comm in collaboration.communication %}
+    - platform: "{{ comm.platform }}"
+      purpose: "{{ comm.purpose }}"
+{% endfor %}
+  project_management: "{{ collaboration.project_management.platform }}"
+  adr_location: "{{ collaboration.knowledge_management.adr_location }}"
+  runbooks_location: "{{ collaboration.knowledge_management.runbooks_location }}"
+
+# SECRETS_MANAGEMENT
+secrets_management:
+  production_provider: "{{ secrets_management.production.provider }}"
+  rotation_enabled: {{ secrets_management.production.rotation_enabled }}
+  development_provider: "{{ secrets_management.development.provider }}"
+
+# GOVERNANCE
+governance:
+  tool_ownership:
+{% for owner in governance.tool_ownership %}
+    - category: "{{ owner.category }}"
+      owner: "{{ owner.owner_contact }}"
+{% endfor %}
+  access_review_frequency: "{{ governance.access_management.review_frequency }}"
+  alert_triage:
+{% for triage_type in ['sast_findings', 'dependency_vulnerabilities', 'secrets_detected', 'production_alerts'] %}
+    - type: "{{ triage_type }}"
+      owner: "{{ governance.alert_triage[triage_type].owner }}"
+      sla: "{{ governance.alert_triage[triage_type].sla }}"
+{% endfor %}

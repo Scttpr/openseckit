@@ -1,0 +1,72 @@
+# team.yaml.j2 - Team structure, roles, processes
+# REFS: business.yaml, actors.yaml
+
+# TEAM
+team:
+  name: "{{ team.name }}"
+  organization: "{{ team.organization }}"
+  size: {{ team.size }}
+  location: "{{ team.location }}"
+  roles:
+{% for role in team.roles %}
+    - role: "{{ role.role }}"
+      responsibilities: "{{ role.responsibilities }}"
+      contact: "{{ role.contact }}"
+      backup: "{{ role.backup }}"
+{% endfor %}
+  security_champion: "{{ team.security_champion }}"
+  incident_responder: "{{ team.incident_responder }}"
+  compliance_contact: "{{ team.compliance_contact }}"
+
+# ACCESS_MANAGEMENT
+access_management:
+  identity_provider: "{{ access_management.identity_provider }}"
+  sso_enabled: {{ access_management.sso_enabled }}
+  mfa_policy: "{{ access_management.mfa_policy }}"
+  onboarding_documented: {{ access_management.onboarding_documented }}
+  offboarding_documented: {{ access_management.offboarding_documented }}
+  access_review_frequency: "{{ access_management.access_review_frequency }}"
+  last_access_review: "{{ access_management.last_access_review }}"
+
+# INCIDENT_RESPONSE
+incident_response:
+  plan_documented: {{ incident_response.plan_documented }}
+  plan_location: "{{ incident_response.plan_location }}"
+  last_updated: "{{ incident_response.last_updated }}"
+  last_tested: "{{ incident_response.last_tested }}"
+  internal_channel: "{{ incident_response.internal_channel }}"
+  external_contact: "{{ incident_response.external_contact }}"
+  escalation_matrix:
+{% for level in incident_response.escalation_matrix %}
+    - severity: "{{ level.severity }}"
+      response_time: "{{ level.response_time }}"
+      notify: [{% for n in level.notify %}"{{ n }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+      escalate_to: "{{ level.escalate_to }}"
+{% endfor %}
+
+# DEVELOPMENT_PROCESSES
+development_processes:
+  code_review_required: {{ development_processes.code_review_required }}
+  min_reviewers: {{ development_processes.min_reviewers }}
+  security_review_triggers: [{% for t in development_processes.security_review_triggers %}"{{ t }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  release_documented: {{ development_processes.release_documented }}
+  rollback_procedure: {{ development_processes.rollback_procedure }}
+  threat_modeling_conducted: {{ development_processes.threat_modeling_conducted }}
+  pentest_frequency: "{{ development_processes.pentest_frequency }}"
+  last_pentest: "{{ development_processes.last_pentest }}"
+
+# COMPLIANCE
+compliance:
+  frameworks: [{% for f in compliance.frameworks %}"{{ f }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  audits:
+{% for audit in compliance.audits %}
+    - type: "{{ audit.type }}"
+      frequency: "{{ audit.frequency }}"
+      last_audit: "{{ audit.last_audit }}"
+{% endfor %}
+  policies:
+{% for policy in compliance.policies %}
+    - name: "{{ policy.name }}"
+      location: "{{ policy.location }}"
+      owner: "{{ policy.owner }}"
+{% endfor %}

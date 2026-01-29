@@ -1,0 +1,47 @@
+# OpenSecKit V5 - RGPD Treatment Schema
+# Usage: Format for a processing activity in the RGPD register
+# Location: kit/comply/frameworks/rgpd/schemas/treatment.yaml
+
+id: "PROC-[NNN]"
+name: "[Processing name]"
+description: "[Short description]"
+
+# Purposes
+primary_purpose: "[Why this data is processed]"
+secondary_purposes: []
+
+# Legal Basis (Art. 6)
+legal_basis: "[consent|contract|legal_obligation|vital_interests|public_task|legitimate_interests]"
+justification: "[Justification for the legal basis]"
+
+# Data
+data_categories:
+  - "[email, name, address, etc.]"
+sensitive_data: false  # Art. 9
+data_subject_categories:
+  - "[users, customers, employees, etc.]"
+
+# Retention
+retention_period: "[duration]"
+retention_criteria: "[Justification for the duration]"
+
+# Recipients
+internal_recipients:
+  - "[department/team]"
+processors:
+  - name: "[Name]"
+    purpose: "[Why]"
+    dpa_signed: true|false
+transfers_outside_eu:
+  - country: "[Country]"
+    safeguards: "[Applied safeguards]"
+
+# Security Measures
+technical_measures:
+  - "[encryption, pseudonymization, etc.]"
+organizational_measures:
+  - "[access control, training, etc.]"
+
+# DPIA
+dpia_required: true|false
+dpia_reference: "[path to DPIA if exists]"

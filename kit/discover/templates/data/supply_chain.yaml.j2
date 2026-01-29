@@ -1,0 +1,63 @@
+# supply_chain.yaml.j2 - SBOM, dependency management, artifact security
+# REFS: architecture.yaml
+
+# SBOM
+sbom:
+  enabled: {{ sbom.generation.enabled }}
+  tool: "{{ sbom.generation.tool }}"
+  format: "{{ sbom.generation.format }}"
+  frequency: "{{ sbom.generation.frequency }}"
+  ci_integrated: {{ sbom.generation.ci_integrated }}
+  storage_location: "{{ sbom.generation.storage_location }}"
+  components:
+{% for comp in sbom.components %}
+    - name: "{{ comp.name }}"
+      type: "{{ comp.type }}"
+      version: "{{ comp.version }}"
+      licenses: [{% for l in comp.licenses %}"{{ l }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+      vulnerability_status: "{{ comp.vulnerability_status }}"
+{% endfor %}
+  vulnerability_scanning:
+    enabled: {{ sbom.vulnerability_scanning.enabled }}
+    tool: "{{ sbom.vulnerability_scanning.tool }}"
+    blocking_threshold: "{{ sbom.vulnerability_scanning.blocking_threshold }}"
+
+# DEPENDENCY_POLICIES
+dependency_policies:
+  allowed_licenses: [{% for l in dependency_policies.license_policy.allowed_licenses %}"{{ l }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  blocked_licenses: [{% for l in dependency_policies.license_policy.blocked_licenses %}"{{ l }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  license_enforcement: "{{ dependency_policies.license_policy.enforcement }}"
+  max_vulnerability_severity: "{{ dependency_policies.vulnerability_policy.max_severity }}"
+  vulnerability_grace_period_days: {{ dependency_policies.vulnerability_policy.grace_period_days }}
+  auto_update_enabled: {{ dependency_policies.update_policy.auto_update_enabled }}
+  dependabot_enabled: {{ dependency_policies.update_policy.dependabot_enabled }}
+  new_dependency_approval: {{ dependency_policies.new_dependency_process.approval_required }}
+
+# ARTIFACT_SECURITY
+artifact_security:
+  signing_enabled: {{ artifact_security.signing.enabled }}
+  signing_method: "{{ artifact_security.signing.method }}"
+  provenance_enabled: {{ artifact_security.provenance.enabled }}
+  slsa_level: {{ artifact_security.provenance.slsa_level }}
+  container_base_image_policy: "{{ artifact_security.container_security.base_image_policy }}"
+  container_allowed_registries: [{% for r in artifact_security.container_security.allowed_registries %}"{{ r }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  container_scanning: {{ artifact_security.container_security.scanning_enabled }}
+
+# THIRD_PARTY_RISK
+third_party_risk:
+  assessment_enabled: {{ third_party_risk.assessment_process.enabled }}
+  assessment_frequency: "{{ third_party_risk.assessment_process.frequency }}"
+  critical_dependencies:
+{% for dep in third_party_risk.critical_dependencies %}
+    - name: "{{ dep.name }}"
+      type: "{{ dep.type }}"
+      risk_level: "{{ dep.risk_level }}"
+      alternatives_identified: {{ dep.alternatives_identified }}
+{% endfor %}
+  supply_chain_threats:
+{% for threat in third_party_risk.supply_chain_threats %}
+    - threat: "{{ threat.threat }}"
+      likelihood: "{{ threat.likelihood }}"
+      impact: "{{ threat.impact }}"
+      mitigations: [{% for m in threat.mitigations %}"{{ m }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}

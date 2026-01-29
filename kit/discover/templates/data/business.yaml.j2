@@ -1,0 +1,42 @@
+# business.yaml.j2 - Domain, stakeholders, org types, business processes
+# REFS: index.yaml
+
+# BUSINESS_CONTEXT
+business_context:
+  domain: "{{ domain }}"
+  description: "{{ description }}"
+
+  stakeholders:
+{% for stakeholder in stakeholders %}
+    - role: "{{ stakeholder.role }}"
+      concerns: [{% for concern in stakeholder.concerns %}"{{ concern }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}
+
+# BUSINESS_PROCESSES
+business_processes:
+{% for process in processes %}
+  - id: "{{ process.id }}"
+    name: "{{ process.name }}"
+    description: "{{ process.description }}"
+    criticality: "{{ process.criticality }}"
+    data_handled:
+{% for data in process.data_handled %}
+      - "{{ data }}"
+{% endfor %}
+    actors_involved:
+{% for actor in process.actors_involved %}
+      - "{{ actor }}"
+{% endfor %}
+    compliance_relevant:
+{% for compliance in process.compliance_relevant %}
+      - "{{ compliance }}"
+{% endfor %}
+{% endfor %}
+
+# BUSINESS_RULES
+business_rules:
+{% for rule in rules %}
+  - id: "{{ rule.id }}"
+    rule: "{{ rule.rule }}"
+    security_implication: "{{ rule.security_implication }}"
+{% endfor %}

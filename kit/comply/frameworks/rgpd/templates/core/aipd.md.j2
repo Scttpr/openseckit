@@ -1,0 +1,267 @@
+{# Template: Analyse d'Impact relative à la Protection des Données (Article 35 RGPD) #}
+{# Source: knowledge/core/aipd-modeles.md, knowledge/core/aipd-liste-obligatoire.md #}
+{# Input: system-model/data.yaml, boundaries.yaml, controls.yaml, gaps.yaml #}
+{# Additional: assessments/dpia-{processing_id}.yaml #}
+
+# Analyse d'Impact relative à la Protection des Données (AIPD)
+
+> **Article 35 du RGPD** - Analyse d'impact relative à la protection des données
+> Document généré le {{ now() | date(format="%d/%m/%Y") }}
+> Traitement concerné: **{{ processing.name }}** ({{ processing.id }})
+
+---
+
+## 1. Contexte du traitement
+
+### 1.1 Vue d'ensemble
+
+| Élément | Description |
+|---------|-------------|
+| **Description du traitement** | {{ processing.description | default(value="À compléter") }} |
+| **Nature** | {{ processing.nature | default(value="À préciser") }} |
+| **Portée** | {{ processing.scope | default(value="À préciser") }} |
+| **Contexte** | {{ index.project.description | default(value="À compléter") }} |
+| **Finalités** | {% for purpose in processing.processing_purposes %}{{ purpose }}{% if not loop.last %}, {% endif %}{% endfor %} |
+| **Enjeux** | {{ aipd.enjeux | default(value="À documenter") }} |
+
+### 1.2 Acteurs
+
+| Rôle | Identification |
+|------|----------------|
+| **Responsable du traitement** | {{ organization.legal_entity.name }} |
+| **DPO** | {{ team.security_roles.dpo.name | default(value="Non désigné") }} |
+| **Sous-traitant(s)** | {% for integration in integrations.integrations %}{% if integration.data_exchanged is defined %}{{ integration.name }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %} |
+
+### 1.3 Référentiels applicables
+
+| Référentiel | Prise en compte |
+|-------------|-----------------|
+| RGPD (Règlement UE 2016/679) | ✅ |
+| Loi Informatique et Libertés (78-17) | ✅ |
+{% for framework in business.compliance.frameworks_in_scope | default(value=[]) %}
+| {{ framework }} | ✅ |
+{% endfor %}
+
+---
+
+## 2. Description des données et flux
+
+### 2.1 Données traitées
+
+| Catégorie | Données | Sensible | Destinataires | Durée conservation |
+|-----------|---------|----------|---------------|-------------------|
+{% for field in processing.fields %}
+| {{ field.type | default(value="Standard") }} | {{ field.name }} | {% if field.sensitive %}⚠️ Oui{% else %}Non{% endif %} | {{ field.recipients | default(value="À définir") }} | {{ processing.retention.period | default(value="À définir") }} |
+{% endfor %}
+
+### 2.2 Catégories de personnes concernées
+
+{% for subject in data.data_subjects %}
+{% if processing.id in subject.data_categories %}
+- **{{ subject.type }}** - Droits applicables: {{ subject.rights_applicable | join(sep=", ") }}
+{% endif %}
+{% endfor %}
+
+### 2.3 Flux de données
+
+```
+{% for flow in architecture.data_flows %}
+{% if processing.id in flow.data %}
+{{ flow.from }} --[{{ flow.protocol }}{% if flow.encrypted %}, chiffré{% endif %}]--> {{ flow.to }}
+{% endif %}
+{% endfor %}
+```
+
+---
+
+## 3. Principes fondamentaux
+
+### 3.1 Finalités - déterminées, explicites et légitimes
+
+| Finalité | Légitimité | Évaluation |
+|----------|------------|------------|
+{% for purpose in processing.processing_purposes %}
+| {{ purpose }} | {{ aipd.finalites[loop.index0].legitimite | default(value="À justifier") }} | ⚪⚪⚪ |
+{% endfor %}
+
+### 3.2 Base légale (Article 6 RGPD)
+
+| Critère de licéité | Applicable | Justification |
+|--------------------|------------|---------------|
+| Consentement (Art. 6.1.a) | {% if processing.legal_basis == "consentement" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.consentement | default(value="") }} |
+| Exécution d'un contrat (Art. 6.1.b) | {% if processing.legal_basis == "contrat" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.contrat | default(value="") }} |
+| Obligation légale (Art. 6.1.c) | {% if processing.legal_basis == "obligation_legale" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.obligation | default(value="") }} |
+| Intérêts vitaux (Art. 6.1.d) | {% if processing.legal_basis == "interet_vital" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.vital | default(value="") }} |
+| Mission d'intérêt public (Art. 6.1.e) | {% if processing.legal_basis == "mission_publique" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.mission | default(value="") }} |
+| Intérêts légitimes (Art. 6.1.f) | {% if processing.legal_basis == "interet_legitime" %}✅{% else %}❌{% endif %} | {{ aipd.base_legale.legitime | default(value="Voir analyse LIA") }} |
+
+{% if processing.legal_basis == "interet_legitime" %}
+> ⚠️ **Intérêt légitime**: Une analyse de mise en balance (LIA) doit être réalisée. Voir document séparé.
+{% endif %}
+
+### 3.3 Minimisation des données
+
+| Donnée | Catégorie | Justification du besoin | Mesure de minimisation |
+|--------|-----------|------------------------|------------------------|
+{% for field in processing.fields %}
+| {{ field.name }} | {{ field.type }} | {{ aipd.minimisation[loop.index0].justification | default(value="À justifier") }} | {{ aipd.minimisation[loop.index0].mesure | default(value="À définir") }} |
+{% endfor %}
+
+### 3.4 Durées de conservation
+
+| Type de données | Durée | Justification | Mécanisme de suppression |
+|-----------------|-------|---------------|--------------------------|
+| Données courantes | {{ processing.retention.period | default(value="À définir") }} | {{ processing.retention.legal_basis | default(value="À justifier") }} | {{ processing.retention.deletion_method | default(value="À définir") }} |
+| Données archivées | {{ aipd.retention.archive | default(value="À définir") }} | {{ aipd.retention.archive_justification | default(value="À justifier") }} | {{ aipd.retention.archive_deletion | default(value="À définir") }} |
+| Journaux techniques | {{ aipd.retention.logs | default(value="À définir") }} | Sécurité et traçabilité | Purge automatique |
+
+---
+
+## 4. Droits des personnes
+
+### 4.1 Information (Articles 13-14)
+
+| Mesure | Modalité | Évaluation |
+|--------|----------|------------|
+| Politique de confidentialité accessible | {{ aipd.droits.information.politique | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Information claire et compréhensible | {{ aipd.droits.information.clarte | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Mention des finalités | {{ aipd.droits.information.finalites | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Mention des droits | {{ aipd.droits.information.droits | default(value="À vérifier") }} | ⚪⚪⚪ |
+
+### 4.2 Exercice des droits
+
+| Droit | Applicable | Modalité d'exercice | Délai de réponse |
+|-------|------------|---------------------|------------------|
+| Accès (Art. 15) | ✅ | {{ aipd.droits.acces.modalite | default(value="À définir") }} | 1 mois |
+| Rectification (Art. 16) | ✅ | {{ aipd.droits.rectification.modalite | default(value="À définir") }} | 1 mois |
+| Effacement (Art. 17) | {% if aipd.droits.effacement.applicable | default(value=true) %}✅{% else %}❌ (exemption){% endif %} | {{ aipd.droits.effacement.modalite | default(value="À définir") }} | 1 mois |
+| Limitation (Art. 18) | ✅ | {{ aipd.droits.limitation.modalite | default(value="À définir") }} | 1 mois |
+| Portabilité (Art. 20) | {% if processing.legal_basis in ["consentement", "contrat"] %}✅{% else %}❌{% endif %} | {{ aipd.droits.portabilite.modalite | default(value="À définir") }} | 1 mois |
+| Opposition (Art. 21) | ✅ | {{ aipd.droits.opposition.modalite | default(value="À définir") }} | 1 mois |
+
+---
+
+## 5. Sous-traitance et transferts
+
+### 5.1 Sous-traitants (Article 28)
+
+| Sous-traitant | Finalité | Contrat Art. 28 | Localisation | Certifications |
+|---------------|----------|-----------------|--------------|----------------|
+{% for integration in integrations.integrations %}
+{% if integration.data_exchanged is defined %}
+| {{ integration.name }} ({{ integration.vendor }}) | {% for exchange in integration.data_exchanged %}{{ exchange.purpose }}{% if not loop.last %}, {% endif %}{% endfor %} | {% if integration.compliance.dpa_signed %}✅{% else %}❌{% endif %} | {{ integration.compliance.data_location | default(value="?") }} | {{ integration.compliance.certifications | join(sep=", ") | default(value="-") }} |
+{% endif %}
+{% endfor %}
+
+### 5.2 Transferts hors UE (Chapitre V)
+
+{% if processing.cross_border %}
+| Pays | Mécanisme | Conformité |
+|------|-----------|------------|
+{% for destination in processing.transfer_destinations %}
+| {{ destination }} | {{ processing.transfer_mechanism }} | ⚪⚪⚪ |
+{% endfor %}
+{% else %}
+*Aucun transfert hors UE identifié.*
+{% endif %}
+
+---
+
+## 6. Analyse des risques
+
+### 6.1 Mesures de sécurité existantes
+
+#### Mesures sur les données
+
+| Mesure | Mise en œuvre | Évaluation |
+|--------|---------------|------------|
+| Chiffrement | {{ controls.existing_controls.encryption.algorithms | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Contrôle d'accès | {{ controls.existing_controls.authorization | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Traçabilité | {{ controls.existing_controls.logging.events | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Pseudonymisation | {{ aipd.securite.pseudonymisation | default(value="À évaluer") }} | ⚪⚪⚪ |
+
+#### Mesures organisationnelles
+
+| Mesure | Mise en œuvre | Évaluation |
+|--------|---------------|------------|
+| Politique de sécurité | {{ team.security_processes | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Gestion des incidents | {{ team.incident_response.plan | default(value="À vérifier") }} | ⚪⚪⚪ |
+| Formation | {{ team.training.security_awareness | default(value="À vérifier") }} | ⚪⚪⚪ |
+
+### 6.2 Évaluation des risques
+
+| Risque | Sources | Menaces | Impacts | Mesures | Gravité | Vraisemblance |
+|--------|---------|---------|---------|---------|---------|---------------|
+{% for boundary in boundaries.trust_boundaries %}
+{% if boundary.risk_level == "HIGH" %}
+| {{ boundary.threats | first }} | {{ boundary.from_zone }} | Franchissement de frontière | {{ aipd.risques[loop.index0].impacts | default(value="À évaluer") }} | {{ aipd.risques[loop.index0].mesures | default(value="Voir controls") }} | {{ boundary.risk_level }} | {{ aipd.risques[loop.index0].vraisemblance | default(value="À évaluer") }} |
+{% endif %}
+{% endfor %}
+| Accès illégitime | Externe/Interne | Attaque, erreur | Divulgation données | Authentification, chiffrement | {{ aipd.risques.acces.gravite | default(value="À évaluer") }} | {{ aipd.risques.acces.vraisemblance | default(value="À évaluer") }} |
+| Modification non désirée | Interne | Erreur, malveillance | Intégrité compromise | Contrôle intégrité, sauvegardes | {{ aipd.risques.modification.gravite | default(value="À évaluer") }} | {{ aipd.risques.modification.vraisemblance | default(value="À évaluer") }} |
+| Disparition de données | Technique | Panne, sinistre | Perte de disponibilité | Sauvegardes, PRA | {{ aipd.risques.disparition.gravite | default(value="À évaluer") }} | {{ aipd.risques.disparition.vraisemblance | default(value="À évaluer") }} |
+
+### 6.3 Cartographie des risques
+
+```
+        Gravité
+           │
+4. Maximal │              [Zone Rouge - Inacceptable]
+           │
+3. Important│         [Zone Jaune - À améliorer]
+           │
+2. Limité  │    [Zone Verte - Acceptable]
+           │
+1. Négligeable
+           │
+           └────┬─────────────┬─────────────┬─────────────┬────▶ Vraisemblance
+                1. Négligeable  2. Limité     3. Important   4. Maximal
+```
+
+---
+
+## 7. Plan d'action
+
+| Mesure complémentaire | Responsable | Échéance | Priorité | Statut |
+|----------------------|-------------|----------|----------|--------|
+{% for gap in gaps.discovery_gaps %}
+{% if gap.blocking.comply %}
+| {{ gap.resolution.action }} | {{ gap.resolution.owner | default(value="À définir") }} | {{ gap.resolution.deadline | default(value="À définir") }} | {{ gap.severity }} | 🔴 À faire |
+{% endif %}
+{% endfor %}
+
+---
+
+## 8. Validation
+
+### 8.1 Avis du DPO (Article 35.2)
+
+> Le {{ aipd.validation.dpo.date | default(value="[DATE]") }}, le délégué à la protection des données de {{ organization.legal_entity.name }} a rendu l'avis suivant:
+>
+> {{ aipd.validation.dpo.avis | default(value="[AVIS À COMPLÉTER]") }}
+>
+> Signature: _________________________
+
+### 8.2 Consultation des personnes concernées (Article 35.9)
+
+{% if aipd.validation.consultation.effectuee | default(value=false) %}
+> Les personnes concernées ont été consultées et ont émis l'avis suivant:
+>
+> {{ aipd.validation.consultation.avis }}
+{% else %}
+> Les personnes concernées n'ont pas été consultées.
+>
+> Justification: {{ aipd.validation.consultation.justification | default(value="À documenter") }}
+{% endif %}
+
+### 8.3 Validation du responsable de traitement
+
+> Le {{ aipd.validation.rt.date | default(value="[DATE]") }}, le responsable de traitement de {{ organization.legal_entity.name }} valide la présente AIPD.
+>
+> Les mesures prévues pour respecter les principes fondamentaux et traiter les risques sont jugées **{{ aipd.validation.rt.conclusion | default(value="acceptables / à améliorer") }}**.
+>
+> Signature: _________________________
+
+---
+
+*Document conforme à la méthode CNIL (PIA-2) - Dernière mise à jour: {{ now() | date(format="%d/%m/%Y") }}*

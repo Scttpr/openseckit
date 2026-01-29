@@ -1,0 +1,72 @@
+# product.yaml.j2 - Product identity, features, KPIs, roadmap
+# REFS: actors.yaml, business.yaml, supply_chain.yaml
+
+# PRODUCT_IDENTITY
+product:
+  name: "{{ product.name }}"
+  tagline: "{{ product.tagline }}"
+  version: "{{ product.version }}"
+  repository: "{{ product.repository }}"
+  vision: "{{ product.vision }}"
+  value_for_users: "{{ product.value_proposition.for_users }}"
+  value_for_business: "{{ product.value_proposition.for_business }}"
+  differentiators: [{% for diff in product.value_proposition.differentiators %}"{{ diff }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  primary_audience: "{{ product.target_audience.primary }}"
+  secondary_audiences: [{% for seg in product.target_audience.secondary %}"{{ seg }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  product_type: "{{ product.product_type }}"
+  business_model: "{{ product.business_model }}"
+  maturity: "{{ product.maturity }}"
+
+# FEATURES
+features:
+{% for feature in features %}
+  - id: "{{ feature.id }}"
+    name: "{{ feature.name }}"
+    description: "{{ feature.description }}"
+    status: "{{ feature.status }}"
+    owner: "{{ feature.owner }}"
+    user_value: "{{ feature.user_value }}"
+    business_value: "{{ feature.business_value }}"
+    entry_points:
+{% for entry in feature.entry_points %}
+      - path: "{{ entry.path }}"
+        method: "{{ entry.method }}"
+{% endfor %}
+    components: [{% for c in feature.dependencies.components %}"{{ c }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    integrations: [{% for i in feature.dependencies.integrations %}"{{ i }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}
+
+# KPIS
+kpis:
+  business:
+{% for kpi in kpis.business %}
+    - name: "{{ kpi.name }}"
+      current: "{{ kpi.current }}"
+      target: "{{ kpi.target }}"
+      tracking: "{{ kpi.tracking }}"
+{% endfor %}
+  technical:
+{% for kpi in kpis.technical %}
+    - name: "{{ kpi.name }}"
+      current: "{{ kpi.current }}"
+      target: "{{ kpi.target }}"
+      sla: {{ kpi.sla }}
+{% endfor %}
+
+# ROADMAP
+roadmap:
+  current_quarter:
+    name: "{{ roadmap.current_quarter.name }}"
+    theme: "{{ roadmap.current_quarter.theme }}"
+    priorities: [{% for priority in roadmap.current_quarter.priorities %}"{{ priority }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    deliverables:
+{% for deliverable in roadmap.current_quarter.key_deliverables %}
+      - name: "{{ deliverable.name }}"
+        status: "{{ deliverable.status }}"
+{% endfor %}
+  tech_debt:
+{% for debt in roadmap.tech_debt %}
+    - description: "{{ debt.description }}"
+      impact: "{{ debt.impact }}"
+      priority: "{{ debt.priority }}"
+{% endfor %}

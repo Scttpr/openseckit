@@ -1,0 +1,48 @@
+name: Bug Report
+description: Report a bug
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - init.sh
+        - ingest.sh
+        - Discover (prompts/templates)
+        - Comply RGPD
+        - Comply RGS
+        - Secure (prompts/knowledge)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. curl -sf https://raw.githubusercontent.com/.../init.sh | bash
+        2. /osk-discover
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: shell

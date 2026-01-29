@@ -1,0 +1,38 @@
+# glossary.yaml.j2 - Domain vocabulary, acronyms, bounded contexts
+# REFS: data.yaml, business.yaml, actors.yaml
+
+# TERMS
+terms:
+{% for term in terms %}
+  - term: "{{ term.term }}"
+    definition: "{{ term.definition }}"
+    context: "{{ term.context }}"
+    category: "{{ term.category }}"
+    aliases: [{% for alias in term.aliases %}"{{ alias }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    related_terms: [{% for related in term.related_terms %}"{{ related }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    examples: [{% for example in term.examples %}"{{ example }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}
+
+# ACRONYMS
+acronyms:
+{% for acronym in acronyms %}
+  - acronym: "{{ acronym.acronym }}"
+    expansion: "{{ acronym.expansion }}"
+    context: "{{ acronym.context }}"
+{% endfor %}
+
+# BOUNDED_CONTEXTS
+bounded_contexts:
+{% for ctx in bounded_contexts %}
+  - name: "{{ ctx.name }}"
+    description: "{{ ctx.description }}"
+    owner: "{{ ctx.owner }}"
+    entities: [{% for entity in ctx.entities %}"{{ entity.name }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    aggregates: [{% for agg in ctx.aggregates %}"{{ agg.name }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    domain_events: [{% for event in ctx.domain_events %}"{{ event.name }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    relationships:
+{% for rel in ctx.relationships %}
+      - context: "{{ rel.context }}"
+        type: "{{ rel.type }}"
+{% endfor %}
+{% endfor %}

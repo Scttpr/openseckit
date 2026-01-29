@@ -1,0 +1,186 @@
+# operations.yaml.j2 - Environments, monitoring, alerts, runbooks, deployments
+# REFS: team.yaml, controls.yaml
+
+# ENVIRONMENTS
+environments:
+{% for env in environments %}
+  - name: "{{ env.name }}"
+    type: "{{ env.type }}"
+    url: "{{ env.url }}"
+    region: "{{ env.region }}"
+    provider: "{{ env.provider }}"
+    access_method: "{{ env.access_method }}"
+    access_requirements: [{% for r in env.access_requirements %}"{{ r }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    approval_needed: {{ env.approval_needed }}
+    compute: "{{ env.compute }}"
+    database: "{{ env.database }}"
+    cache: "{{ env.cache }}"
+    storage: "{{ env.storage }}"
+    config_source: "{{ env.config_source }}"
+    secrets_source: "{{ env.secrets_source }}"
+    feature_flags: {{ env.feature_flags }}
+    contains_pii: {{ env.contains_pii }}
+    data_refresh: "{{ env.data_refresh }}"
+    retention: "{{ env.retention }}"
+{% endfor %}
+
+# MONITORING
+monitoring:
+  dashboards:
+{% for dash in monitoring.dashboards %}
+    - name: "{{ dash.name }}"
+      url: "{{ dash.url }}"
+      purpose: "{{ dash.purpose }}"
+      owner: "{{ dash.owner }}"
+{% endfor %}
+  metrics:
+{% for metric in monitoring.metrics %}
+    - name: "{{ metric.name }}"
+      type: "{{ metric.type }}"
+      source: "{{ metric.source }}"
+      normal_range: "{{ metric.normal_range }}"
+      alert_threshold: "{{ metric.alert_threshold }}"
+{% endfor %}
+  logs:
+    provider: "{{ monitoring.logs.provider }}"
+    retention: "{{ monitoring.logs.retention }}"
+    pii_filtering: {{ monitoring.logs.pii_filtering }}
+    locations:
+{% for loc in monitoring.logs.locations %}
+      - name: "{{ loc.name }}"
+        query: "{{ loc.query }}"
+        purpose: "{{ loc.purpose }}"
+{% endfor %}
+  tracing:
+    enabled: {{ monitoring.tracing.enabled }}
+    provider: "{{ monitoring.tracing.provider }}"
+    sample_rate: "{{ monitoring.tracing.sample_rate }}"
+
+# ALERTS
+alerts:
+{% for alert in alerts %}
+  - id: "{{ alert.id }}"
+    name: "{{ alert.name }}"
+    severity: "{{ alert.severity }}"
+    description: "{{ alert.description }}"
+    condition: "{{ alert.condition }}"
+    threshold: "{{ alert.threshold }}"
+    channels: [{% for c in alert.channels %}"{{ c }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    runbook: "{{ alert.runbook }}"
+{% endfor %}
+
+# RUNBOOKS
+runbooks:
+{% for runbook in runbooks %}
+  - id: "{{ runbook.id }}"
+    name: "{{ runbook.name }}"
+    description: "{{ runbook.description }}"
+    trigger: "{{ runbook.trigger }}"
+    severity: "{{ runbook.severity }}"
+    owner: "{{ runbook.owner }}"
+    prerequisites:
+{% for pre in runbook.prerequisites %}
+      - "{{ pre }}"
+{% endfor %}
+    diagnosis:
+{% for diag in runbook.diagnosis %}
+      - step: {{ diag.step }}
+        action: "{{ diag.action }}"
+        command: "{{ diag.command }}"
+        expected: "{{ diag.expected }}"
+        if_unexpected: "{{ diag.if_unexpected }}"
+{% endfor %}
+    resolution:
+{% for res in runbook.resolution %}
+      - scenario: "{{ res.scenario }}"
+        action: "{{ res.action }}"
+        command: "{{ res.command }}"
+        verification: "{{ res.verification }}"
+        rollback: "{{ res.rollback }}"
+{% endfor %}
+    escalation_when: "{{ runbook.escalation_when }}"
+    escalation_to: "{{ runbook.escalation_to }}"
+    escalation_method: "{{ runbook.escalation_method }}"
+    post_incident:
+{% for post in runbook.post_incident %}
+      - "{{ post }}"
+{% endfor %}
+{% endfor %}
+
+# DEPLOYMENTS
+deployments:
+  strategy: "{{ deployments.strategy }}"
+  frequency: "{{ deployments.frequency }}"
+  deployment_windows: [{% for w in deployments.deployment_windows %}"{{ w }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  freeze_periods: [{% for f in deployments.freeze_periods %}"{{ f }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  pre_deployment:
+{% for step in deployments.pre_deployment %}
+    - step: "{{ step.step }}"
+      command: "{{ step.command }}"
+      required: {{ step.required }}
+{% endfor %}
+  deployment_steps:
+{% for step in deployments.deployment_steps %}
+    - step: {{ step.step }}
+      action: "{{ step.action }}"
+      command: "{{ step.command }}"
+      verification: "{{ step.verification }}"
+      rollback_point: {{ step.rollback_point }}
+{% endfor %}
+  rollback_method: "{{ deployments.rollback_method }}"
+  rollback_command: "{{ deployments.rollback_command }}"
+  rollback_verification: "{{ deployments.rollback_verification }}"
+
+# ON_CALL
+on_call:
+  provider: "{{ on_call.provider }}"
+  schedule_url: "{{ on_call.schedule_url }}"
+  rotation_length: "{{ on_call.rotation_length }}"
+  handoff_time: "{{ on_call.handoff_time }}"
+  response_time: "{{ on_call.response_time }}"
+  acknowledgment_time: "{{ on_call.acknowledgment_time }}"
+  escalation_policy:
+{% for level in on_call.escalation_policy %}
+    - level: {{ level.level }}
+      wait: "{{ level.wait }}"
+      notify: "{{ level.notify }}"
+      method: "{{ level.method }}"
+{% endfor %}
+
+# INCIDENT_MANAGEMENT
+incident_management:
+  severity_levels:
+{% for sev in incident_management.severity_levels %}
+    - level: "{{ sev.level }}"
+      name: "{{ sev.name }}"
+      description: "{{ sev.description }}"
+      response_time: "{{ sev.response_time }}"
+      communication: "{{ sev.communication }}"
+      examples:
+{% for ex in sev.examples %}
+        - "{{ ex }}"
+{% endfor %}
+{% endfor %}
+  communication_channel: "{{ incident_management.communication_channel }}"
+  status_page: "{{ incident_management.status_page }}"
+  postmortem_required_for: [{% for s in incident_management.postmortem_required_for %}"{{ s }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  postmortem_timeline: "{{ incident_management.postmortem_timeline }}"
+  blameless: {{ incident_management.blameless }}
+
+# MAINTENANCE
+maintenance:
+  scheduled_tasks:
+{% for task in maintenance.scheduled_tasks %}
+    - name: "{{ task.name }}"
+      frequency: "{{ task.frequency }}"
+      command: "{{ task.command }}"
+      owner: "{{ task.owner }}"
+      last_run: "{{ task.last_run }}"
+{% endfor %}
+  health_checks:
+{% for check in maintenance.health_checks %}
+    - name: "{{ check.name }}"
+      endpoint: "{{ check.endpoint }}"
+      frequency: "{{ check.frequency }}"
+      timeout: "{{ check.timeout }}"
+{% endfor %}

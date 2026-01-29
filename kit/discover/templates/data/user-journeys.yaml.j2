@@ -1,0 +1,62 @@
+# user-journeys.yaml.j2 - Personas, user journeys, touchpoints
+# REFS: actors.yaml, business.yaml
+
+# PERSONAS
+personas:
+{% for persona in personas %}
+  - id: "{{ persona.id }}"
+    name: "{{ persona.name }}"
+    role: "{{ persona.role }}"
+    description: "{{ persona.description }}"
+    technical_level: "{{ persona.technical_level }}"
+    goals:
+{% for goal in persona.goals %}
+      - "{{ goal }}"
+{% endfor %}
+    needs:
+{% for need in persona.needs %}
+      - "{{ need }}"
+{% endfor %}
+    maps_to_actor: "{{ persona.maps_to_actor }}"
+{% endfor %}
+
+# JOURNEYS
+journeys:
+{% for journey in journeys %}
+  - id: "{{ journey.id }}"
+    name: "{{ journey.name }}"
+    persona: "{{ journey.persona }}"
+    description: "{{ journey.description }}"
+    trigger: "{{ journey.trigger }}"
+    outcome: "{{ journey.outcome }}"
+    preconditions:
+{% for pre in journey.preconditions %}
+      - "{{ pre }}"
+{% endfor %}
+    steps:
+{% for step in journey.steps %}
+      - step: {{ step.step }}
+        action: "{{ step.action }}"
+        touchpoint: "{{ step.touchpoint }}"
+        component: "{{ step.component }}"
+        data_read: [{% for d in step.data_read %}"{{ d }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+        data_written: [{% for d in step.data_written %}"{{ d }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}
+    failure_points:
+{% for fail in journey.failure_points %}
+      - step: {{ fail.step }}
+        issue: "{{ fail.issue }}"
+        mitigation: "{{ fail.mitigation }}"
+{% endfor %}
+{% endfor %}
+
+# TOUCHPOINTS
+touchpoints:
+{% for touchpoint in touchpoints %}
+  - id: "{{ touchpoint.id }}"
+    name: "{{ touchpoint.name }}"
+    type: "{{ touchpoint.type }}"
+    location: "{{ touchpoint.location }}"
+    component: "{{ touchpoint.component }}"
+    used_in_journeys: [{% for j in touchpoint.used_in_journeys %}"{{ j }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endfor %}
