@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions
+    url: https://github.com/Scttpr/OpenSecKit/discussions
+    about: General questions
+  - name: Security
+    url: https://github.com/Scttpr/OpenSecKit/security/advisories/new
+    about: Report vulnerabilities (private)
