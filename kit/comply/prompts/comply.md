@@ -22,6 +22,61 @@ phase: compliance
 | `rgpd` | RGPD/GDPR - EU data protection regulation |
 | `rgs` | RGS - French government security standard |
 
+---
+
+# ORCHESTRATOR INSTRUCTIONS
+
+When this command is invoked with a framework argument, execute the following steps **in order**:
+
+## Step 1: Parse framework argument
+
+Extract the framework name from the command. Valid values: `rgpd`, `rgs`.
+If no framework specified or invalid, display usage and stop.
+
+## Step 2: Bootstrap - Auto-fetch framework resources
+
+**CRITICAL: This step is MANDATORY before any workflow execution.**
+
+Check if framework resources exist:
+```
+.osk/kit/comply/frameworks/<framework>/knowledge/
+```
+
+If the directory does NOT exist or is empty:
+
+```bash
+# For RGS:
+curl -sf https://raw.githubusercontent.com/Scttpr/openseckit/main/kit/comply/frameworks/rgs/scripts/fetch.sh | bash
+
+# For RGPD:
+curl -sf https://raw.githubusercontent.com/Scttpr/openseckit/main/kit/comply/frameworks/rgpd/scripts/fetch.sh | bash
+```
+
+Display progress:
+```
+Fetching <framework> resources...
+  ✓ knowledge
+  ✓ schemas
+  ✓ templates
+  ✓ prompts
+Done!
+```
+
+## Step 3: Load framework orchestrator
+
+Read the framework-specific orchestrator prompt:
+```
+.osk/kit/comply/frameworks/<framework>/prompt.md
+```
+
+If the file doesn't exist after fetch, display error and abort.
+
+## Step 4: Execute framework workflow
+
+Follow the instructions in the loaded framework orchestrator prompt to execute the full compliance workflow.
+
+---
+
 ## How It Works
 
 Each framework runs an autonomous 5-phase workflow:

@@ -11,15 +11,44 @@ sub_prompts:
   - prompts/05-generate.md
 ---
 
-# Prerequisites
+# BOOTSTRAP - EXECUTE FIRST
 
-**First, fetch all required resources by running:**
+**CRITICAL: Before ANY other action, you MUST check and fetch RGPD resources.**
+
+## Step 1: Check if resources exist
+
+Check if the directory `.osk/kit/comply/frameworks/rgpd/knowledge/` exists and contains files.
+
+## Step 2: Auto-fetch if missing
+
+If the knowledge directory does NOT exist or is empty, execute:
 
 ```bash
 curl -sf https://raw.githubusercontent.com/Scttpr/openseckit/main/kit/comply/frameworks/rgpd/scripts/fetch.sh | bash
 ```
 
-This downloads knowledge base, templates, schemas, and phase prompts to `.osk/kit/comply/frameworks/rgpd/`.
+This downloads to `.osk/kit/comply/frameworks/rgpd/`:
+- `knowledge/` - RGPD text, CNIL guides, EDPB guidelines, SCCs
+- `schemas/` - YAML validation schemas
+- `templates/` - Jinja2 templates for output generation
+- `prompts/` - Phase sub-prompts (01 to 05)
+
+## Step 3: Verify fetch success
+
+After fetch, confirm these files exist:
+- `.osk/kit/comply/frameworks/rgpd/knowledge/core/guide-securite.md`
+- `.osk/kit/comply/frameworks/rgpd/prompts/01-inventory.md`
+
+If verification fails, display error and abort workflow.
+
+## Step 4: Load sub-prompts
+
+Read the phase prompts from `.osk/kit/comply/frameworks/rgpd/prompts/` for use during workflow execution:
+- `01-inventory.md` - Phase 1 instructions
+- `02-aipd.md` - Phase 2 instructions
+- `03-assess.md` - Phase 3 instructions
+- `04-gaps.md` - Phase 4 instructions
+- `05-generate.md` - Phase 5 instructions
 
 ---
 
@@ -118,6 +147,14 @@ The workflow is **autonomous** - it automatically determines which phase to exec
 ## Starting a New Workflow
 
 ```
+0. BOOTSTRAP (mandatory first step)
+   ├── Check .osk/kit/comply/frameworks/rgpd/knowledge/ exists?
+   │   ├── If no: Execute fetch.sh automatically
+   │   └── If yes: Continue
+   ├── Verify critical files present
+   │   └── If missing: ERROR "Fetch failed, check network"
+   └── Load phase sub-prompts from .osk/kit/comply/frameworks/rgpd/prompts/
+
 1. Check prerequisites
    ├── System model exists? ──▶ If no: ERROR "Run /osk-discover first"
    └── workflow-state.yaml exists?
